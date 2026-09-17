@@ -20,10 +20,12 @@ BusinessAnalysis AI est une application web qui permet aux utilisateurs de gére
 - npm (Node Package Manager)
 
 ## 🤖 Agents IA Principaux
-Dans la version actuelle, la génération d'analyse métier par l'IA est gérée par un moteur de simulation (`AnalysisServiceImpl`) qui produit de façon autonome pour chaque projet :
-- **Agent d'Exigences** : Génère les exigences métier, fonctionnelles et non-fonctionnelles.
-- **Agent Agile** : Produit les User Stories et les Critères d'Acceptation.
-- **Agent Stratégique** : Évalue les risques, les hypothèses et fournit des recommandations stratégiques.
+Dans la version actuelle, l'intégration de l'intelligence artificielle est **simulée** (mock) via un moteur interne (`AnalysisServiceImpl`). Le système démontre la logique des agents suivants de manière autonome :
+- **Business Analyst Agent** : Analyse l'idée principale du projet et évalue les risques et hypothèses.
+- **Requirements Agent** : Génère les exigences métier, fonctionnelles et non-fonctionnelles.
+- **User Story Agent** : Produit les User Stories et leurs Critères d'Acceptation associés.
+- **Documentation Agent** : Compile l'ensemble de l'analyse dans un format structuré et exportable.
+- **AI Chat Agent** : Conçu pour l'interaction dynamique (fonctionnalité simulée dans cette version de démonstration).
 
 ## 📁 Structure du Projet
 - `/` (racine) : Contient le code source du backend (Spring Boot), les configurations Maven (`pom.xml`, `mvnw`) et les paramètres globaux.
@@ -34,9 +36,10 @@ Dans la version actuelle, la génération d'analyse métier par l'IA est gérée
 - **Java Development Kit (JDK) 21**
 - **Node.js et npm** (dernière version stable recommandée)
 - **Serveur MySQL** (en cours d'exécution sur le port 3306)
+> **⚠️ Important :** Le serveur MySQL **doit impérativement être démarré** avant de lancer le Backend.
 
 ## ⚙️ Configuration (Base de données)
-Le projet est préconfiguré pour créer automatiquement la base de données.
+Le projet est préconfiguré pour créer automatiquement la base de données au démarrage si le serveur MySQL est actif.
 Les paramètres de base de données par défaut (modifiables dans `src/main/resources/application.properties`) sont :
 - **URL** : `jdbc:mysql://localhost:3306/business_analysis_ai?createDatabaseIfNotExist=true`
 - **Utilisateur** : `root`
@@ -46,7 +49,7 @@ Les paramètres de base de données par défaut (modifiables dans `src/main/reso
 
 ### 1. Cloner le projet
 ```bash
-git clone <URL_DU_DEPOT>
+git clone https://github.com/bedhiafiranime/business-analysis-ai.git
 cd business-analysis-ai
 ```
 
@@ -54,7 +57,7 @@ cd business-analysis-ai
 Aucune installation globale de Maven n'est requise grâce au wrapper Maven intégré (`mvnw`). Les dépendances se téléchargeront automatiquement lors du premier lancement.
 
 ### 3. Frontend (Angular)
-Ouvrez un terminal et installez les dépendances :
+Ouvrez un nouveau terminal et installez les dépendances :
 ```bash
 cd frontend
 npm install
@@ -63,7 +66,7 @@ npm install
 ## ▶️ Commandes d'Exécution
 
 ### Démarrer le Backend
-Depuis la racine du projet, exécutez la commande suivante :
+Assurez-vous que MySQL tourne, puis depuis la racine du projet, exécutez la commande suivante :
 - Sous **Windows** :
   ```cmd
   mvnw.cmd spring-boot:run
