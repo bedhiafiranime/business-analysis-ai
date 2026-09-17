@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: business_analysis_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: business_analysis_ai
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: business_analysis_backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Remplacement à la volée de l'URL pour pointer vers le service 'db'
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/business_analysis_ai?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: business_analysis_frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:
+    name: business_analysis_db_data
