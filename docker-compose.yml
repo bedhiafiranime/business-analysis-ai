@@ -1,9 +1,6 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
-    container_name: business_analysis_db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: business_analysis_ai
@@ -17,7 +14,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: business_analysis_backend
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -33,7 +29,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: business_analysis_frontend
     restart: unless-stopped
     ports:
       - "4200:80"
@@ -48,4 +43,3 @@ networks:
 
 volumes:
   db_data:
-    name: business_analysis_db_data
