@@ -1,0 +1,73 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-titles">
+      <h1 class="page-title">Workspace Analyses</h1>
+      <p class="page-subtitle">Overview of all AI business analyses across your projects.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" routerLink="/projects/new">
+        <span class="icon">+</span> New Project
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loader-ring"></div>
+    <h3>Loading Analyses...</h3>
+    <p>Fetching the latest data from your workspace.</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <div *ngIf="combinedData.length === 0" class="empty-state glass-panel">
+      <span class="empty-icon">📊</span>
+      <h3>No Analyses Found</h3>
+      <p>Create a project and run the AI Business Analyst to see your results here.</p>
+      <button class="btn-primary mt-4" routerLink="/projects/new">Create Project</button>
+    </div>
+
+    <div *ngIf="combinedData.length > 0" class="analysis-grid">
+      <div 
+        class="analysis-card glass-panel" 
+        *ngFor="let item of combinedData" 
+        (click)="openAnalysis(item.project.id)">
+        
+        <div class="card-header">
+          <h3 class="project-name">{{ item.project.name }}</h3>
+          <span class="status-badge" [ngClass]="item.analysis ? item.analysis.generationStatus.toLowerCase() : 'none'">
+            {{ item.analysis ? item.analysis.generationStatus : 'NO ANALYSIS' }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <p class="business-idea">{{ item.project.businessIdea || 'No business idea defined.' }}</p>
+          
+          <div class="artifacts-summary" *ngIf="item.analysis">
+            <h4>Generated Artifacts</h4>
+            <div class="tags">
+              <span class="tag" *ngIf="item.analysis.userStories">User Stories</span>
+              <span class="tag" *ngIf="item.analysis.functionalRequirements">Functional Reqs</span>
+              <span class="tag" *ngIf="item.analysis.nonFunctionalRequirements">Non-Functional Reqs</span>
+              <span class="tag" *ngIf="item.analysis.acceptanceCriteria">Acceptance Criteria</span>
+              <span class="tag" *ngIf="item.analysis.risks">Risks & Assumptions</span>
+            </div>
+            <p class="no-artifacts" *ngIf="!item.analysis.userStories && !item.analysis.functionalRequirements && !item.analysis.risks">
+              No artifacts generated yet.
+            </p>
+          </div>
+          <div class="artifacts-summary" *ngIf="!item.analysis">
+            <p class="no-artifacts">Project created. Run the Business Analyst agent to generate artifacts.</p>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <span class="date-info">
+            Created: {{ item.project.createdAt | date:'mediumDate' }}
+          </span>
+          <button class="btn-icon">
+            <span>➔</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,105 @@
+<div class="page-container">
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">Your Projects</h1>
+      <p class="page-subtitle">Manage your workspaces and AI analyses.</p>
+    </div>
+    <button class="btn btn-primary" (click)="toggleCreateForm()" *ngIf="!showCreateForm">
+      + Create Project
+    </button>
+  </div>
+
+  <div class="filters-bar glass-panel mt-3 mb-4">
+    <div class="search-box">
+      <span class="icon">🔍</span>
+      <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()" placeholder="Search projects...">
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+        <option value="ALL">All Statuses</option>
+        <option value="DRAFT">Draft</option>
+        <option value="ANALYZING">Analyzing</option>
+        <option value="COMPLETED">Completed</option>
+      </select>
+      <select [(ngModel)]="sortBy" (ngModelChange)="applyFilters()">
+        <option value="createdAt">Newest First</option>
+        <option value="name">Alphabetical</option>
+      </select>
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="showArchived" (ngModelChange)="applyFilters()">
+        Show Archived
+      </label>
+    </div>
+  </div>
+
+  <div class="create-form glass-panel" *ngIf="showCreateForm">
+    <h3>New Project</h3>
+    <form (ngSubmit)="createProject()" #form="ngForm">
+      <div class="form-group">
+        <label>Project Name *</label>
+        <input type="text" name="name" [(ngModel)]="newProject.name" required class="form-control" placeholder="E.g. E-commerce Mobile App">
+      </div>
+      <div class="form-group mt-3">
+        <label>Business Idea (Optional)</label>
+        <textarea name="businessIdea" [(ngModel)]="newProject.businessIdea" class="form-control" rows="3" placeholder="Briefly describe what you are building..."></textarea>
+      </div>
+      <div class="form-actions mt-4">
+        <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()" [disabled]="isCreating">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isCreating">
+          <span *ngIf="!isCreating">Create</span>
+          <span *ngIf="isCreating">Creating...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Loading Skeletons -->
+  <div class="projects-grid" *ngIf="isLoading">
+    <div *ngFor="let i of [1,2,3]" class="glass-panel" style="padding: 1.5rem;">
+      <app-skeleton type="title"></app-skeleton>
+      <app-skeleton type="text"></app-skeleton>
+      <app-skeleton type="text" style="width: 80%"></app-skeleton>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <app-empty-state 
+    *ngIf="!isLoading && filteredProjects.length === 0"
+    title="No Projects Found"
+    message="You haven't created any projects matching these filters."
+    actionLabel="Create Your First Project"
+    (action)="toggleCreateForm()">
+  </app-empty-state>
+
+  <div class="projects-grid" *ngIf="!isLoading && filteredProjects.length > 0">
+    <div class="project-card glass-panel" *ngFor="let project of filteredProjects" [routerLink]="['/projects', project.id]">
+      
+      <div class="card-header">
+        <div class="title-row">
+          <h3 class="project-name">
+            <span class="favorite-icon" *ngIf="project.isFavorite">⭐</span>
+            {{ project.name }}
+          </h3>
+          <span class="status-badge" [ngClass]="project.status.toLowerCase()">{{ project.status }}</span>
+        </div>
+        
+        <div class="card-actions" (click)="$event.stopPropagation()">
+          <button class="icon-btn" title="Favorite" (click)="toggleFavorite(project, $event)">
+            {{ project.isFavorite ? '★' : '☆' }}
+          </button>
+          <button class="icon-btn" title="Duplicate" (click)="duplicateProject(project, $event)">📋</button>
+          <button class="icon-btn" [title]="project.isArchived ? 'Restore' : 'Archive'" (click)="toggleArchive(project, $event)">
+            {{ project.isArchived ? '⬆️' : '📦' }}
+          </button>
+        </div>
+      </div>
+      
+      <p class="project-idea">{{ project.businessIdea || 'No description provided.' }}</p>
+      
+      <div class="card-footer">
+        <span class="date">Created: {{ project.createdAt | date:'mediumDate' }}</span>
+        <button class="btn-icon">→</button>
+      </div>
+    </div>
+  </div>
+</div>

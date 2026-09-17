@@ -1,0 +1,162 @@
+<div class="page-container">
+  
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="glass-panel" style="padding: 2rem;">
+      <app-skeleton type="title"></app-skeleton>
+      <app-skeleton type="text" style="margin-top: 2rem;"></app-skeleton>
+      <app-skeleton type="text" style="width: 80%"></app-skeleton>
+      <div style="margin-top: 3rem;">
+        <app-skeleton type="card"></app-skeleton>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-message" *ngIf="errorMsg">
+    <div class="glass-panel alert-danger text-center p-4">
+      <h3>Error Loading Project</h3>
+      <p>{{ errorMsg }}</p>
+      <button class="btn btn-secondary mt-3" routerLink="/projects">Back to Projects</button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!isLoading && project">
+    
+    <!-- Top Dashboard Header -->
+    <div class="dashboard-header">
+      <div class="header-main">
+        <button class="btn-icon back-btn" routerLink="/projects">←</button>
+        <div class="title-container">
+          <h1 class="page-title">
+            {{ project.name }}
+            <span class="status-badge" [ngClass]="project.status.toLowerCase()">{{ project.status }}</span>
+          </h1>
+          <p class="page-subtitle">Created on {{ project.createdAt | date:'longDate' }}</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" (click)="openEditModal()">Edit Project</button>
+        <button class="btn btn-danger" (click)="openDeleteModal()">Delete</button>
+      </div>
+    </div>
+
+    <!-- Workflow Stepper -->
+    <app-project-progress [currentStepId]="currentProgressStep"></app-project-progress>
+
+    <!-- Main Workspace Dashboard -->
+    <div class="workspace-grid">
+      
+      <!-- Idea / Description Card -->
+      <div class="workspace-card idea-card glass-panel">
+        <div class="card-header">
+          <div class="icon">💡</div>
+          <h2>Business Idea</h2>
+        </div>
+        <p class="idea-text">{{ project.businessIdea || 'No business idea provided.' }}</p>
+      </div>
+
+      <!-- Action Panel for the Connected Workflow -->
+      <div class="workspace-card action-card glass-panel">
+        <div class="card-header">
+          <div class="icon">🚀</div>
+          <h2>Next Step</h2>
+        </div>
+        <div class="action-content">
+          <!-- Documents Upload Step -->
+          <ng-container *ngIf="currentProgressStep === 'created'">
+            <p>Your project is created. The first step is to upload source documents for analysis.</p>
+            <button class="btn btn-primary pulse-btn" [routerLink]="['/projects', project.id, 'documents']">Go to Documents →</button>
+          </ng-container>
+
+          <!-- Business Analysis Step -->
+          <ng-container *ngIf="currentProgressStep === 'documents'">
+            <p>Documents uploaded. Let our AI analyze your business model.</p>
+            <button class="btn btn-primary pulse-btn" [routerLink]="['/projects', project.id, 'agents', 'business-analyst']">Start Analysis →</button>
+          </ng-container>
+
+          <!-- Requirements Step -->
+          <ng-container *ngIf="currentProgressStep === 'analysis'">
+            <p>Analysis complete! Next, let's generate formal software requirements.</p>
+            <button class="btn btn-primary pulse-btn" [routerLink]="['/projects', project.id, 'agents', 'requirements']">Generate Requirements →</button>
+          </ng-container>
+
+          <!-- User Stories Step -->
+          <ng-container *ngIf="currentProgressStep === 'requirements'">
+            <p>Requirements are ready. Time to break them down into User Stories.</p>
+            <button class="btn btn-primary pulse-btn" [routerLink]="['/projects', project.id, 'agents', 'user-stories']">Create User Stories →</button>
+          </ng-container>
+
+          <!-- Documentation Step -->
+          <ng-container *ngIf="currentProgressStep === 'stories'">
+            <p>User stories defined. Generate the final technical documentation.</p>
+            <button class="btn btn-primary pulse-btn" [routerLink]="['/projects', project.id, 'agents', 'documentation']">Generate Docs →</button>
+          </ng-container>
+
+          <!-- Final Chat Step -->
+          <ng-container *ngIf="currentProgressStep === 'completed' || currentProgressStep === 'documentation'">
+            <p>Your workspace is fully set up. You can now chat with your AI assistant about the project.</p>
+            <button class="btn btn-primary pulse-btn" [routerLink]="['/projects', project.id, 'agents', 'chat']">Open AI Chat →</button>
+          </ng-container>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Links Grid -->
+    <div class="quick-links mt-5">
+      <h3 class="mb-3">Workspace Modules</h3>
+      <div class="modules-grid">
+        <a [routerLink]="['/projects', project.id, 'documents']" class="module-card glass-panel">
+          <div class="icon">📄</div>
+          <h4>Documents</h4>
+          <p>Manage uploaded files</p>
+        </a>
+        <a [routerLink]="['/projects', project.id, 'agents', 'business-analyst']" class="module-card glass-panel">
+          <div class="icon">🧠</div>
+          <h4>Business Analysis</h4>
+          <p>AI Strategy & Models</p>
+        </a>
+        <a [routerLink]="['/projects', project.id, 'agents', 'requirements']" class="module-card glass-panel">
+          <div class="icon">📝</div>
+          <h4>Requirements</h4>
+          <p>Functional specs</p>
+        </a>
+        <a [routerLink]="['/projects', project.id, 'history']" class="module-card glass-panel">
+          <div class="icon">⏱️</div>
+          <h4>Activity History</h4>
+          <p>Audit logs & events</p>
+        </a>
+      </div>
+    </div>
+  </ng-container>
+
+</div>
+
+<!-- Edit Project Modal -->
+<div class="modal-backdrop" *ngIf="showEditModal">
+  <div class="modal-content glass-panel">
+    <h2>Edit Project</h2>
+    <div class="form-group">
+      <label>Project Name</label>
+      <input type="text" [(ngModel)]="editProjectData.name" class="form-control" placeholder="Project Name">
+    </div>
+    <div class="form-group mt-3">
+      <label>Business Idea</label>
+      <textarea [(ngModel)]="editProjectData.businessIdea" class="form-control" rows="4" placeholder="Describe the idea..."></textarea>
+    </div>
+    <div class="modal-actions mt-4">
+      <button class="btn btn-secondary" (click)="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="saveEdit()" [disabled]="!editProjectData.name">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Dialog for Delete -->
+<app-confirmation-dialog
+  *ngIf="showDeleteModal"
+  title="Delete Project"
+  message="Are you sure you want to permanently delete this project? All associated documents, analyses, and history will be lost."
+  confirmText="Delete Permanently"
+  type="danger"
+  (confirm)="confirmDelete()"
+  (cancel)="closeDeleteModal()">
+</app-confirmation-dialog>

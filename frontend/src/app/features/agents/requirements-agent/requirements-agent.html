@@ -1,0 +1,248 @@
+<div class="page-container">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" *ngIf="activeProject">
+    <a [routerLink]="['/projects', activeProject.id]" class="breadcrumb-link">← Back to {{ activeProject.name }}</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Requirements Agent</span>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-titles">
+      <h1 class="page-title">Requirements Agent</h1>
+      <p class="page-subtitle">Structured functional, non-functional & business requirements from your AI analysis.</p>
+    </div>
+    <div class="header-actions">
+      <button
+        class="btn-export"
+        [disabled]="!latestAnalysis || totalRequirements === 0"
+        (click)="exportAsText()"
+        [class.success]="exportSuccess"
+      >
+        <span *ngIf="!exportSuccess">📥 Export Requirements</span>
+        <span *ngIf="exportSuccess">✅ Exported!</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- No Project State -->
+  <div *ngIf="!activeProject && !isLoading" class="empty-state glass-panel">
+    <div class="empty-icon">📋</div>
+    <h3>No Active Project</h3>
+    <p>Please open a project from the Business Analyst Agent to load its requirements here.</p>
+    <a routerLink="/agents/business-analyst" class="btn-link">→ Go to Business Analyst Agent</a>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading && activeProject" class="loading-state glass-panel">
+    <div class="loader-ring"></div>
+    <p>Loading requirements for <strong>{{ activeProject?.name }}</strong>...</p>
+  </div>
+
+  <!-- Main Content (has project and analysis) -->
+  <div *ngIf="activeProject && !isLoading">
+
+    <!-- No Analysis State -->
+    <div *ngIf="!latestAnalysis" class="empty-state glass-panel">
+      <div class="empty-icon">⚡</div>
+      <h3>No Analysis Found</h3>
+      <p>No analysis has been generated for <strong>{{ activeProject.name }}</strong>. Generate one first.</p>
+      <a routerLink="/agents/business-analyst" class="btn-link">→ Generate Analysis</a>
+    </div>
+
+    <!-- Has Analysis but no content -->
+    <div *ngIf="latestAnalysis && totalRequirements === 0 && assumptions.length === 0" class="empty-state glass-panel">
+      <div class="empty-icon">⏳</div>
+      <h3>Analysis Incomplete</h3>
+      <p>The analysis exists but AI content has not been fully generated yet. Please regenerate.</p>
+      <a routerLink="/agents/business-analyst" class="btn-link">→ Regenerate Analysis</a>
+    </div>
+
+    <!-- Full Requirements View -->
+    <div *ngIf="latestAnalysis && (totalRequirements > 0 || assumptions.length > 0)">
+
+      <!-- Context Banner -->
+      <div class="context-banner glass-panel">
+        <div class="context-info">
+          <span class="context-label">Project</span>
+          <span class="context-value">{{ activeProject.name }}</span>
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-info">
+          <span class="context-label">Analysis Status</span>
+          <span class="status-badge" [ngClass]="latestAnalysis.generationStatus.toLowerCase()">
+            {{ latestAnalysis.generationStatus }}
+          </span>
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-info">
+          <span class="context-label">Last Updated</span>
+          <span class="context-value">{{ latestAnalysis.updatedAt | date:'mediumDate' }}</span>
+        </div>
+      </div>
+
+      <!-- KPI Stats Row -->
+      <div class="stats-grid">
+        <div class="stat-card glass-panel">
+          <span class="stat-icon">📋</span>
+          <div class="stat-body">
+            <span class="stat-value">{{ totalRequirements }}</span>
+            <span class="stat-label">Total Requirements</span>
+          </div>
+        </div>
+        <div class="stat-card glass-panel">
+          <span class="stat-icon">⚙️</span>
+          <div class="stat-body">
+            <span class="stat-value">{{ functionalRequirements.length }}</span>
+            <span class="stat-label">Functional</span>
+          </div>
+        </div>
+        <div class="stat-card glass-panel">
+          <span class="stat-icon">🔒</span>
+          <div class="stat-body">
+            <span class="stat-value">{{ nonFunctionalRequirements.length }}</span>
+            <span class="stat-label">Non-Functional</span>
+          </div>
+        </div>
+        <div class="stat-card glass-panel">
+          <span class="stat-icon">⚠️</span>
+          <div class="stat-body">
+            <span class="stat-value">{{ risks.length }}</span>
+            <span class="stat-label">Risks Identified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tab-nav">
+        <button
+          *ngFor="let tab of tabs"
+          class="tab-btn"
+          [class.active]="activeTab === tab.key"
+          (click)="setTab(tab.key)"
+        >
+          <span class="tab-icon">{{ tab.icon }}</span>
+          <span class="tab-label">{{ tab.label }}</span>
+          <span class="tab-count" *ngIf="getTabCount(tab) > 0">{{ getTabCount(tab) }}</span>
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+
+        <!-- Functional Requirements Table -->
+        <div *ngIf="activeTab === 'functional'" class="requirements-panel glass-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">⚙️ Functional Requirements</h2>
+            <span class="panel-subtitle">Capabilities and behaviors the system must provide.</span>
+          </div>
+          <div *ngIf="functionalRequirements.length === 0" class="no-items">No functional requirements found.</div>
+          <div *ngIf="functionalRequirements.length > 0" class="req-table">
+            <div class="req-table-header">
+              <span>Requirement</span>
+            </div>
+            <div class="req-row" *ngFor="let req of functionalRequirements">
+              <span class="req-text">{{ req.text }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Non-Functional Requirements Table -->
+        <div *ngIf="activeTab === 'nonFunctional'" class="requirements-panel glass-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">🔒 Non-Functional Requirements</h2>
+            <span class="panel-subtitle">Quality attributes and system constraints.</span>
+          </div>
+          <div *ngIf="nonFunctionalRequirements.length === 0" class="no-items">No non-functional requirements found.</div>
+          <div *ngIf="nonFunctionalRequirements.length > 0" class="req-table">
+            <div class="req-table-header">
+              <span>Requirement</span>
+            </div>
+            <div class="req-row" *ngFor="let req of nonFunctionalRequirements">
+              <span class="req-text">{{ req.text }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Business Requirements -->
+        <div *ngIf="activeTab === 'business'" class="requirements-panel glass-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">🏢 Business Requirements</h2>
+            <span class="panel-subtitle">High-level business goals and objectives.</span>
+          </div>
+          <div *ngIf="businessRequirements.length === 0" class="no-items">No business requirements found.</div>
+          <div *ngIf="businessRequirements.length > 0" class="req-table">
+            <div class="req-table-header">
+              <span>Requirement</span>
+            </div>
+            <div class="req-row" *ngFor="let req of businessRequirements">
+              <span class="req-text">{{ req.text }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risks -->
+        <div *ngIf="activeTab === 'risks'" class="requirements-panel glass-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">⚠️ Identified Risks</h2>
+            <span class="panel-subtitle">Potential threats and vulnerabilities identified by AI.</span>
+          </div>
+          <div *ngIf="risks.length === 0" class="no-items">No risks identified.</div>
+          <div *ngIf="risks.length > 0" class="risk-list">
+            <div class="risk-item" *ngFor="let risk of risks; let i = index">
+              <div class="risk-number">{{ i + 1 }}</div>
+              <div class="risk-content">
+                <p class="risk-text">{{ risk.text }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assumptions -->
+        <div *ngIf="activeTab === 'assumptions'" class="requirements-panel glass-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">💡 Assumptions</h2>
+            <span class="panel-subtitle">Conditions assumed true for planning purposes.</span>
+          </div>
+          <div *ngIf="assumptions.length === 0" class="no-items">No assumptions listed.</div>
+          <div *ngIf="assumptions.length > 0" class="simple-list">
+            <div class="simple-item" *ngFor="let item of assumptions; let i = index">
+              <span class="item-bullet">{{ i + 1 }}</span>
+              <p>{{ item }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div *ngIf="activeTab === 'recommendations'" class="requirements-panel glass-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">🚀 Recommendations</h2>
+            <span class="panel-subtitle">Actionable suggestions from the AI analysis.</span>
+          </div>
+          <div *ngIf="recommendations.length === 0" class="no-items">No recommendations provided.</div>
+          <div *ngIf="recommendations.length > 0" class="simple-list recommendations">
+            <div class="simple-item rec-item" *ngFor="let item of recommendations; let i = index">
+              <span class="item-bullet rec-bullet">💡</span>
+              <p>{{ item }}</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Next Step CTA -->
+    <div class="next-step-cta glass-panel" *ngIf="latestAnalysis && totalRequirements > 0">
+      <div class="cta-content">
+        <span class="cta-icon">✅</span>
+        <div>
+          <h4>Requirements Ready!</h4>
+          <p>Time to break them down into actionable User Stories.</p>
+        </div>
+      </div>
+      <a class="btn btn-primary" [routerLink]="activeProject ? ['/projects', activeProject.id, 'agents', 'user-stories'] : null">User Story Agent →</a>
+    </div>
+
+  </div>
+</div>

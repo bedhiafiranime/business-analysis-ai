@@ -1,0 +1,223 @@
+<div class="page-container">
+  
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" *ngIf="activeProject">
+    <a [routerLink]="['/projects', activeProject.id]" class="breadcrumb-link">← Back to {{ activeProject.name }}</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Documentation Agent</span>
+  </div>
+
+  <div class="page-header">
+    <div class="header-titles">
+      <h1 class="page-title">Documentation Agent</h1>
+      <p class="page-subtitle" *ngIf="activeProject">
+        Generating master specifications for: <strong>{{ activeProject.name }}</strong>
+      </p>
+      <p class="page-subtitle" *ngIf="!activeProject">
+        Compile and export comprehensive project documents.
+      </p>
+    </div>
+
+    <div class="header-actions" *ngIf="hasProject && hasAnalysis">
+      <button class="btn-export" [class.success]="exportSuccessBrd" (click)="exportBrdDocument()" *ngIf="activeTab === 'brd'">
+        <span *ngIf="!exportSuccessBrd">📄 Export BRD</span>
+        <span *ngIf="exportSuccessBrd">✅ Exported BRD</span>
+      </button>
+
+      <button class="btn-export" [class.success]="exportSuccessSrs" (click)="exportSrsDocument()" *ngIf="activeTab === 'srs'">
+        <span *ngIf="!exportSuccessSrs">📄 Export SRS</span>
+        <span *ngIf="exportSuccessSrs">✅ Exported SRS</span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loader-ring"></div>
+    <h3>Loading Workspace...</h3>
+    <p>Compiling project, analysis, and document context.</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    
+    <!-- No Project State -->
+    <div *ngIf="!hasProject" class="empty-state glass-panel">
+      <span class="empty-icon">📂</span>
+      <h3>No Active Project</h3>
+      <p>Select a project to start compiling documentation.</p>
+    </div>
+
+    <!-- No Analysis State -->
+    <div *ngIf="hasProject && !hasAnalysis" class="empty-state glass-panel">
+      <span class="empty-icon">🤖</span>
+      <h3>Analysis Incomplete</h3>
+      <p>The Business Analyst Agent needs to complete its analysis before a master document can be generated.</p>
+    </div>
+
+    <!-- Data State -->
+    <div *ngIf="hasProject && hasAnalysis" class="content-wrapper fade-in">
+      
+      <!-- Context Banner -->
+      <div class="context-banner glass-panel">
+        <div class="context-info">
+          <span class="context-label">Project Name</span>
+          <span class="context-value">{{ activeProject?.name }}</span>
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-info">
+          <span class="context-label">Analysis Date</span>
+          <span class="context-value">{{ activeAnalysis?.createdAt | date:'medium' }}</span>
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-info">
+          <span class="context-label">Reference Docs</span>
+          <span class="context-value">{{ documents.length }} attached</span>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tabs-container glass-panel">
+        <button class="tab-btn" [class.active]="activeTab === 'brd'" (click)="setTab('brd')">
+          <span class="tab-icon">🏢</span> BRD
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'srs'" (click)="setTab('srs')">
+          <span class="tab-icon">⚙️</span> SRS
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'uml'" (click)="setTab('uml')">
+          <span class="tab-icon">📐</span> Architecture / UML
+        </button>
+      </div>
+
+      <!-- Compilation View -->
+      <div class="doc-panel glass-panel">
+        <div class="panel-header">
+          <h3 class="panel-title" *ngIf="activeTab === 'brd'">Business Requirements Document (BRD)</h3>
+          <h3 class="panel-title" *ngIf="activeTab === 'srs'">Software Requirements Specification (SRS)</h3>
+          <h3 class="panel-title" *ngIf="activeTab === 'uml'">System Architecture & Flow</h3>
+          <p class="panel-subtitle">Document compilation preview</p>
+        </div>
+        
+        <!-- SRS PREVIEW -->
+        <div class="srs-preview fade-in" *ngIf="activeTab === 'srs'">
+          <!-- 1. Executive Summary -->
+          <div class="srs-section">
+            <h4 class="srs-section-title">1. Executive Summary</h4>
+            <div class="srs-content">{{ activeProject?.businessIdea || 'No business idea provided.' }}</div>
+          </div>
+
+          <!-- 2. Business Requirements -->
+          <div class="srs-section">
+            <h4 class="srs-section-title">2. Business Requirements</h4>
+            <pre class="srs-content">{{ activeAnalysis?.businessRequirements }}</pre>
+          </div>
+
+          <!-- 3. Functional Requirements -->
+          <div class="srs-section">
+            <h4 class="srs-section-title">3. Functional Requirements</h4>
+            <pre class="srs-content">{{ activeAnalysis?.functionalRequirements }}</pre>
+          </div>
+
+          <!-- 4. User Stories -->
+          <div class="srs-section">
+            <h4 class="srs-section-title">4. User Stories & Acceptance Criteria</h4>
+            <pre class="srs-content">{{ activeAnalysis?.userStories }}</pre>
+            <div style="margin-top: 0.5rem; color: #a5b4fc; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Acceptance Criteria:</div>
+            <pre class="srs-content">{{ activeAnalysis?.acceptanceCriteria }}</pre>
+          </div>
+
+          <!-- 5. Risks & Architecture -->
+          <div class="srs-section">
+            <h4 class="srs-section-title">5. Non-Functional & Risks</h4>
+            <pre class="srs-content">{{ activeAnalysis?.nonFunctionalRequirements }}</pre>
+            <div style="margin-top: 0.5rem; color: #f87171; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Risks & Mitigation:</div>
+            <pre class="srs-content">{{ activeAnalysis?.risks }}</pre>
+          </div>
+
+          <!-- 6. Reference Documents -->
+          <div class="srs-section" *ngIf="documents.length > 0">
+            <h4 class="srs-section-title">6. Reference Documents</h4>
+            <ul class="srs-doc-list">
+              <li *ngFor="let doc of documents">
+                <span class="doc-icon">📎</span>
+                <span class="doc-name">{{ doc.originalFileName }}</span>
+                <span class="doc-date">({{ doc.uploadDate | date:'short' }})</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- BRD PREVIEW -->
+        <div class="srs-preview fade-in" *ngIf="activeTab === 'brd'">
+          <div class="srs-section">
+            <h4 class="srs-section-title">1. Executive Summary</h4>
+            <div class="srs-content">{{ activeProject?.businessIdea || 'No business idea provided.' }}</div>
+          </div>
+          <div class="srs-section">
+            <h4 class="srs-section-title">2. Business Objectives</h4>
+            <pre class="srs-content">{{ activeAnalysis?.businessRequirements }}</pre>
+          </div>
+          <div class="srs-section">
+            <h4 class="srs-section-title">3. Key Assumptions</h4>
+            <pre class="srs-content">{{ activeAnalysis?.assumptions }}</pre>
+          </div>
+          <div class="srs-section">
+            <h4 class="srs-section-title">4. Risks and Constraints</h4>
+            <pre class="srs-content">{{ activeAnalysis?.risks }}</pre>
+          </div>
+          <div class="srs-section">
+            <h4 class="srs-section-title">5. Strategic Recommendations</h4>
+            <pre class="srs-content">{{ activeAnalysis?.recommendations }}</pre>
+          </div>
+        </div>
+
+        <!-- UML / BPMN PREVIEW -->
+        <div class="srs-preview fade-in" *ngIf="activeTab === 'uml'">
+          <div class="srs-section">
+            <h4 class="srs-section-title">System Sequence Diagram (UML Placeholder)</h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">The following is a generated Mermaid.js sequence diagram based on core functionality.</p>
+            <pre class="srs-content mermaid-placeholder">
+sequenceDiagram
+    actor User
+    participant Frontend as Angular Application
+    participant Backend as Spring Boot API
+    participant DB as MySQL Database
+
+    User->>Frontend: Access Core Functionality
+    Frontend->>Backend: Request Service (JWT Auth)
+    Backend->>DB: Fetch/Store Data
+    DB-->>Backend: Data Response
+    Backend-->>Frontend: JSON Response
+    Frontend-->>User: Display Results
+            </pre>
+          </div>
+          
+          <div class="srs-section" style="margin-top: 1rem;">
+            <h4 class="srs-section-title">Business Process Flow (BPMN Placeholder)</h4>
+            <pre class="srs-content mermaid-placeholder">
+graph TD
+    A[Start] --> B(User Logs In)
+    B --> C[Authenticated?]
+    C -->|Yes| D[Access Dashboard]
+    C -->|No| E[Show Error / Retry]
+    D --> F[Perform Core Business Action]
+    F --> G[Generate Outputs / Update DB]
+    G --> H[End]
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Next Step CTA -->
+  <div class="next-step-cta glass-panel" *ngIf="activeProject && activeAnalysis">
+    <div class="cta-content">
+      <span class="cta-icon">💬</span>
+      <div>
+        <h4>Workflow Complete!</h4>
+        <p>You can now query the AI assistant about your project in real-time.</p>
+      </div>
+    </div>
+    <a class="btn btn-primary" [routerLink]="['/projects', activeProject.id, 'agents', 'chat']">Open AI Chat →</a>
+  </div>
+
+</div>

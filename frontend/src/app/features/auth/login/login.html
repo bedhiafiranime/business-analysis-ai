@@ -1,0 +1,33 @@
+<div class="auth-container">
+  <div class="auth-card glass-panel">
+    <div class="auth-header">
+      <h2>Welcome Back</h2>
+      <p>Sign in to your Business Analysis AI workspace</p>
+    </div>
+    
+    <form (ngSubmit)="login()" #loginForm="ngForm" class="auth-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" [(ngModel)]="request.email" required placeholder="name@example.com" class="input-field">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" [(ngModel)]="request.password" required placeholder="••••••••" class="input-field">
+      </div>
+      
+      <div class="error-message" *ngIf="errorMsg">
+        {{ errorMsg }}
+      </div>
+      
+      <button type="submit" class="btn-primary" [disabled]="!loginForm.valid || isLoading">
+        <span *ngIf="!isLoading">Sign In</span>
+        <span *ngIf="isLoading" class="loader">Loading...</span>
+      </button>
+    </form>
+    
+    <div class="auth-footer">
+      <p>Don't have an account? <a routerLink="/register">Create one now</a></p>
+    </div>
+  </div>
+</div>

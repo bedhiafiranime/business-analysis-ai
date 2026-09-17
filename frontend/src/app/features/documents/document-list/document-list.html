@@ -1,0 +1,78 @@
+<div class="page-container">
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">Documents</h1>
+      <p class="page-subtitle">Upload your requirement files (PDF or DOCX) for AI analysis.</p>
+    </div>
+  </div>
+
+  <!-- Upload Zone -->
+  <div
+    class="upload-zone glass-panel"
+    [class.drag-over]="isDragOver"
+    [class.uploading]="isUploading"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <div class="upload-content" *ngIf="!isUploading">
+      <div class="upload-icon">☁️</div>
+      <h3>Drag & Drop your file here</h3>
+      <p>or click to browse — PDF and DOCX only</p>
+      <label class="btn-primary upload-btn">
+        Browse Files
+        <input type="file" accept=".pdf,.docx" (change)="onFileSelected($event)" hidden>
+      </label>
+    </div>
+
+    <div class="upload-progress" *ngIf="isUploading">
+      <div class="spinner large"></div>
+      <p>Uploading document...</p>
+    </div>
+  </div>
+
+  <!-- Success Banner -->
+  <div class="success-banner" *ngIf="uploadSuccess">
+    ✅ Document uploaded successfully!
+  </div>
+
+  <!-- Upload Error -->
+  <div class="error-message mt-2" *ngIf="uploadError">
+    ⚠️ {{ uploadError }}
+  </div>
+
+  <!-- Delete Error -->
+  <div class="error-message mt-2" *ngIf="deleteError">
+    ⚠️ {{ deleteError }}
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading documents...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state glass-panel" *ngIf="!isLoading && documents.length === 0">
+    <div class="empty-icon">📂</div>
+    <h3>No Documents Yet</h3>
+    <p>Upload your first requirement document to get started with the AI analysis.</p>
+  </div>
+
+  <!-- Document List -->
+  <div class="document-list" *ngIf="!isLoading && documents.length > 0">
+    <h2 class="section-title">Uploaded Documents ({{ documents.length }})</h2>
+    <div class="document-item glass-panel" *ngFor="let doc of documents">
+      <div class="doc-info">
+        <span class="doc-icon">{{ getFileIcon(doc.fileType) }}</span>
+        <div class="doc-details">
+          <span class="doc-name">{{ doc.originalFileName }}</span>
+          <span class="doc-meta">{{ formatFileSize(doc.fileSize) }} · Uploaded {{ doc.uploadDate | date:'mediumDate' }}</span>
+        </div>
+      </div>
+      <button class="btn-delete" (click)="deleteDocument(doc.id)" title="Delete document">
+        🗑️
+      </button>
+    </div>
+  </div>
+</div>

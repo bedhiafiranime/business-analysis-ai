@@ -1,0 +1,120 @@
+<div class="page-container">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" *ngIf="activeProject">
+    <a [routerLink]="['/projects', activeProject.id]" class="breadcrumb-link">← Back to {{ activeProject.name }}</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>Business Analyst Agent</span>
+  </div>
+
+  <div class="page-header">
+    <div class="header-titles">
+      <h1 class="page-title">Business Analyst Agent</h1>
+      <p class="page-subtitle">Your AI partner for project discovery and requirements gathering.</p>
+    </div>
+
+    <!-- Global Workspace Selector -->
+    <div class="workspace-selector">
+      <label>Active Workspace:</label>
+      <select class="input-field select-project" [ngModel]="activeProject?.id" (ngModelChange)="onProjectChange($event)">
+        <option [value]="null">-- Select a Project --</option>
+        <option *ngFor="let p of availableProjects" [value]="p.id">
+          {{ p.name }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="!activeProject" class="empty-state glass-panel">
+    <div class="empty-icon">📁</div>
+    <h3>No Project Selected</h3>
+    <p>Please select a project from the dropdown above to begin working with the Business Analyst Agent.</p>
+  </div>
+
+  <div *ngIf="activeProject">
+    <!-- Generation Panel -->
+    <div class="generate-panel glass-panel">
+      <h2 class="section-heading">🤖 AI Analysis Setup</h2>
+
+      <div class="controls">
+        <div class="form-group">
+          <label>Analysis Source (Upload Document)</label>
+          <select class="input-field" [(ngModel)]="selectedDocumentId" name="docId">
+            <option [ngValue]="null">Use Project Business Idea Text</option>
+            <option *ngFor="let doc of documents" [ngValue]="doc.id">
+              📄 {{ doc.originalFileName }}
+            </option>
+          </select>
+          <span class="hint" *ngIf="isLoadingDocuments">Loading documents...</span>
+          <span class="hint" *ngIf="!isLoadingDocuments && documents.length === 0">
+            No documents found. Please upload one via Documents tab, or proceed with the project idea.
+          </span>
+        </div>
+      </div>
+
+      <div class="error-message" *ngIf="generateError">⚠️ {{ generateError }}</div>
+
+      <button class="btn-generate" [disabled]="isGenerating" (click)="generateAnalysis()">
+        <span *ngIf="!isGenerating">
+          ✨ Generate Full Analysis
+        </span>
+        <span class="generating-label" *ngIf="isGenerating">
+          <span class="pulse-dot"></span> Generating...
+        </span>
+      </button>
+    </div>
+
+    <!-- Results Area -->
+    <div *ngIf="latestAnalysis">
+      <div class="results-container" *ngIf="hasResults(latestAnalysis) && !isGenerating">
+        <div class="result-meta">
+          <span class="status-badge" [ngClass]="latestAnalysis.generationStatus.toLowerCase()">
+            {{ latestAnalysis.generationStatus }}
+          </span>
+          <span class="meta-date">Generated: {{ latestAnalysis.createdAt | date:'medium' }}</span>
+        </div>
+
+        <div class="result-section glass-panel" *ngFor="let section of sections">
+          <ng-container *ngIf="getSectionValue(latestAnalysis, section.key) as value">
+            <div class="section-header">
+              <span class="section-icon">{{ section.icon }}</span>
+              <h3 class="section-title">{{ section.label }}</h3>
+            </div>
+            <div class="section-body">
+              <p *ngFor="let line of value.split('\n')">{{ line }}</p>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Pending / No content yet -->
+      <div class="pending-state glass-panel" *ngIf="!hasResults(latestAnalysis) && !isGenerating">
+        <div class="empty-icon">⏳</div>
+        <h3>Analysis Pending</h3>
+        <p>The analysis was created but the AI content has not been generated yet.</p>
+      </div>
+    </div>
+
+    <!-- Generating animation -->
+    <div class="generating-state glass-panel" *ngIf="isGenerating">
+      <div class="ai-spinner">
+        <div class="ring"></div>
+        <span class="ai-icon">🤖</span>
+      </div>
+      <h3>AI is analyzing your project...</h3>
+      <p>This may take a few moments. We are gathering context, stakeholders, and risks.</p>
+    </div>
+
+    <!-- Next Step Button (shown after analysis is ready) -->
+    <div class="next-step-cta glass-panel" *ngIf="latestAnalysis && !isGenerating">
+      <div class="cta-content">
+        <span class="cta-icon">✅</span>
+        <div>
+          <h4>Analysis Ready!</h4>
+          <p>Proceed to generate formal requirements from this analysis.</p>
+        </div>
+      </div>
+      <a class="btn btn-primary" [routerLink]="activeProject ? ['/projects', activeProject.id, 'agents', 'requirements'] : null">Requirements Agent →</a>
+    </div>
+
+  </div>
+</div>

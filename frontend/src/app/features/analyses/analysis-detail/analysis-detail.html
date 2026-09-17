@@ -1,0 +1,121 @@
+<div class="page-container">
+  <a [routerLink]="['/projects', projectId]" class="back-link">← Back to Project</a>
+
+  <div class="page-header">
+    <h1 class="page-title">AI Analysis</h1>
+    <p class="page-subtitle">Generate structured business requirements from your idea or an uploaded document.</p>
+  </div>
+
+  <!-- Generation Panel -->
+  <div class="generate-panel glass-panel">
+    <h2 class="section-heading">🤖 Generate New Analysis</h2>
+
+    <div class="controls">
+      <!-- Source selector -->
+      <div class="form-group">
+        <label>Analysis Source</label>
+        <select class="input-field" [(ngModel)]="selectedDocumentId" name="docId">
+          <option [ngValue]="null">Use Project Business Idea</option>
+          <option *ngFor="let doc of documents" [ngValue]="doc.id">
+            📄 {{ doc.originalFileName }}
+          </option>
+        </select>
+        <span class="hint" *ngIf="isLoadingDocuments">Loading documents...</span>
+        <span class="hint" *ngIf="!isLoadingDocuments && documents.length === 0">
+          No documents uploaded — will use business idea text.
+        </span>
+      </div>
+    </div>
+
+    <div class="error-message" *ngIf="generateError">⚠️ {{ generateError }}</div>
+
+    <button class="btn-generate" [disabled]="isGenerating" (click)="generateAnalysis()">
+      <span *ngIf="!isGenerating">
+        ✨ Generate Analysis
+      </span>
+      <span class="generating-label" *ngIf="isGenerating">
+        <span class="pulse-dot"></span> Generating...
+      </span>
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" *ngIf="latestAnalysis || analyses.length > 0">
+    <button class="tab" [class.active]="activeTab === 'results'" (click)="activeTab = 'results'">📋 Results</button>
+    <button class="tab" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">🕐 History ({{ analyses.length }})</button>
+  </div>
+
+  <!-- Results Tab -->
+  <div *ngIf="activeTab === 'results'">
+    <!-- No results yet -->
+    <div class="empty-state glass-panel" *ngIf="!latestAnalysis">
+      <div class="empty-icon">🔍</div>
+      <h3>No Analysis Yet</h3>
+      <p>Click "Generate Analysis" above to create your first AI-powered business analysis.</p>
+    </div>
+
+    <!-- Generating animation -->
+    <div class="generating-state glass-panel" *ngIf="isGenerating">
+      <div class="ai-spinner">
+        <div class="ring"></div>
+        <span class="ai-icon">🤖</span>
+      </div>
+      <h3>AI is analyzing your project...</h3>
+      <p>This may take a few moments. We are generating your complete requirements document.</p>
+    </div>
+
+    <!-- Results -->
+    <div class="results-container" *ngIf="latestAnalysis && hasResults(latestAnalysis) && !isGenerating">
+      <div class="result-meta">
+        <span class="status-badge" [ngClass]="latestAnalysis.generationStatus.toLowerCase()">
+          {{ latestAnalysis.generationStatus }}
+        </span>
+        <span class="meta-date">Generated: {{ latestAnalysis.createdAt | date:'medium' }}</span>
+      </div>
+
+      <div class="result-section glass-panel" *ngFor="let section of sections">
+        <ng-container *ngIf="getSectionValue(latestAnalysis, section.key) as value">
+          <div class="section-header">
+            <span class="section-icon">{{ section.icon }}</span>
+            <h3 class="section-title">{{ section.label }}</h3>
+          </div>
+          <div class="section-body">
+            <p *ngFor="let line of value.split('\n')">{{ line }}</p>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Pending / No content yet -->
+    <div class="pending-state glass-panel" *ngIf="latestAnalysis && !hasResults(latestAnalysis) && !isGenerating">
+      <div class="empty-icon">⏳</div>
+      <h3>Analysis Pending</h3>
+      <p>The analysis was created but the AI content has not been generated yet. This feature requires AI provider integration.</p>
+    </div>
+  </div>
+
+  <!-- History Tab -->
+  <div *ngIf="activeTab === 'history'">
+    <div class="loading-state" *ngIf="isLoadingHistory">
+      <div class="spinner"></div>
+      <p>Loading history...</p>
+    </div>
+    <div class="empty-state glass-panel" *ngIf="!isLoadingHistory && analyses.length === 0">
+      <div class="empty-icon">📭</div>
+      <h3>No History</h3>
+      <p>Your previous analyses will appear here.</p>
+    </div>
+    <div class="history-list" *ngIf="!isLoadingHistory && analyses.length > 0">
+      <div class="history-item glass-panel" *ngFor="let a of analyses" (click)="selectAnalysis(a)">
+        <div class="history-info">
+          <span class="status-badge small" [ngClass]="a.generationStatus.toLowerCase()">
+            {{ a.generationStatus }}
+          </span>
+          <span class="history-date">{{ a.createdAt | date:'medium' }}</span>
+        </div>
+        <button class="btn-view">View →</button>
+      </div>
+    </div>
+  </div>
+
+</div>

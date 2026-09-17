@@ -1,0 +1,243 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --bg-color: #0f172a;
+  --surface-color: rgba(30, 41, 59, 0.7);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --error-color: #ef4444;
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+  --sidebar-width: 260px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.12), transparent 45%),
+    radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.10), transparent 45%);
+  background-attachment: fixed;
+}
+
+// Glass panel utility
+.glass-panel {
+  background: var(--surface-color);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+// Input
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+// Primary Button
+.btn-primary {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+
+  &:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+// Outline Button
+.btn-outline {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.05);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Error / Success messages
+.error-message {
+  color: var(--error-color);
+  font-size: 0.85rem;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.success-message {
+  color: var(--success-color);
+  font-size: 0.85rem;
+  background: rgba(52, 211, 153, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+// Scrollbar
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.5); }
+
+// Badge
+.badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  &.status-draft {
+    background: rgba(148, 163, 184, 0.2);
+    color: #cbd5e1;
+  }
+  
+  &.status-analyzing {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818cf8;
+  }
+  
+  &.status-completed {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+  }
+  
+  &.status-failed {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+  }
+}
+
+// Selection
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: white;
+}
+
+// ==========================================================
+// Global Agent Workflow Styles
+// ==========================================================
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+
+  .breadcrumb-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: opacity 0.2s;
+
+    &:hover { opacity: 0.8; }
+  }
+
+  .breadcrumb-sep {
+    opacity: 0.4;
+  }
+}
+
+.next-step-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  margin-top: 2rem;
+  border: 1px solid var(--primary-color);
+  background: linear-gradient(145deg, rgba(99, 102, 241, 0.08) 0%, transparent 100%);
+  border-radius: var(--border-radius-lg, 12px);
+  flex-wrap: wrap;
+  gap: 1.5rem;
+
+  .cta-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .cta-icon {
+      font-size: 2rem;
+    }
+
+    h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+  }
+}

@@ -1,0 +1,25 @@
+<div class="modal-backdrop fade-in">
+  <div class="modal-content glass-panel slide-up">
+    <h2>{{ title }}</h2>
+    
+    <div class="alert mt-3" [ngClass]="type === 'danger' ? 'alert-danger' : 'alert-info'">
+      <ng-container *ngIf="type === 'danger'">
+        <strong>Warning:</strong> This action cannot be undone.
+      </ng-container>
+      <ng-container *ngIf="type !== 'danger'">
+        Please confirm.
+      </ng-container>
+    </div>
+    
+    <p class="dialog-message">{{ message }}</p>
+    
+    <div class="custom-content">
+      <ng-content></ng-content>
+    </div>
+    
+    <div class="modal-actions mt-4">
+      <button class="btn btn-secondary" (click)="onCancel()">{{ cancelText }}</button>
+      <button class="btn" [ngClass]="type === 'danger' ? 'btn-danger' : 'btn-primary'" (click)="onConfirm()">{{ confirmText }}</button>
+    </div>
+  </div>
+</div>

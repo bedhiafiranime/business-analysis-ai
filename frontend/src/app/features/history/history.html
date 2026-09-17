@@ -1,0 +1,158 @@
+<div class="history-container">
+  <div class="header">
+    <div class="title-area">
+      <h1>Project Activity History</h1>
+      <p>View all actions taken on your projects.</p>
+    </div>
+  </div>
+
+  <div class="filters-card">
+    <div class="filter-group">
+      <label for="projectFilter">Project</label>
+      <select id="projectFilter" [(ngModel)]="selectedProjectId" (change)="onFilterChange()">
+        <option [ngValue]="undefined">All Projects</option>
+        <option *ngFor="let project of projects" [ngValue]="project.id">{{ project.name }}</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="actionFilter">Action</label>
+      <select id="actionFilter" [(ngModel)]="selectedAction" (change)="onFilterChange()">
+        <option [ngValue]="undefined">All Actions</option>
+        <option *ngFor="let action of activityActions" [ngValue]="action">{{ getActionLabel(action) }}</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="startDate">Start Date</label>
+      <input type="date" id="startDate" [(ngModel)]="startDate" (change)="onFilterChange()" />
+    </div>
+
+    <div class="filter-group">
+      <label for="endDate">End Date</label>
+      <input type="date" id="endDate" [(ngModel)]="endDate" (change)="onFilterChange()" />
+    </div>
+
+    <button class="btn-clear" (click)="clearFilters()">Clear</button>
+  </div>
+
+  <!-- Loading Skeleton -->
+  <div *ngIf="loading" class="skeleton-container">
+    <div class="skeleton-item" *ngFor="let i of [1,2,3,4]">
+      <div class="skeleton-icon"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-header">
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line timestamp"></div>
+        </div>
+        <div class="skeleton-line long"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadHistory()">Retry</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && activities.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+    </div>
+    <h3>No activities found</h3>
+    <p>There are no recorded activities matching your filters.</p>
+    <button *ngIf="selectedProjectId || selectedAction || startDate || endDate" class="btn-clear" (click)="clearFilters()">Clear Filters</button>
+  </div>
+
+  <!-- Timeline View -->
+  <div *ngIf="!loading && !error && activities.length > 0" class="timeline-container">
+    <div class="timeline">
+      <div class="timeline-item" *ngFor="let activity of activities">
+        
+        <!-- Icon based on action -->
+        <div class="timeline-icon" [ngSwitch]="activity.action.split('_')[0]">
+          <!-- PROJECT actions -->
+          <svg *ngSwitchCase="'PROJECT'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <!-- DOCUMENT actions -->
+          <svg *ngSwitchCase="'DOCUMENT'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <!-- ANALYSIS actions -->
+          <svg *ngSwitchCase="'ANALYSIS'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <!-- REQUIREMENTS / USER STORIES / DOCUMENTATION actions (grouped under generation icon) -->
+          <svg *ngSwitchCase="'REQUIREMENTS'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <svg *ngSwitchCase="'USER'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <svg *ngSwitchCase="'AI'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <!-- Default -->
+          <svg *ngSwitchDefault xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+
+        <!-- Content -->
+        <div class="timeline-content" (click)="navigateToProject(activity.projectId)">
+          <div class="timeline-header">
+            <div class="timeline-title">
+              <span class="action-text">{{ getActionLabel(activity.action) }}</span>
+              <span class="project-name" *ngIf="activity.projectName"> on {{ activity.projectName }}</span>
+            </div>
+            <div class="timeline-meta">
+              <span class="relative-time">{{ getRelativeTime(activity.timestamp) }}</span>
+            </div>
+          </div>
+          
+          <div class="timeline-body">
+            <p class="details-text" *ngIf="activity.details">{{ activity.details }}</p>
+            <div class="timeline-footer">
+              <div class="user-info">
+                <div class="avatar"></div>
+                <span class="user-name">{{ activity.userName }}</span>
+              </div>
+              <span class="badge" [ngClass]="getStatusBadgeClass(activity.status)">
+                {{ activity.status | titlecase }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!loading && !error && totalPages > 1" class="pagination">
+    <button [disabled]="currentPage === 0" (click)="previousPage()">Previous</button>
+    <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+    <button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()">Next</button>
+  </div>
+</div>

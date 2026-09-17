@@ -1,0 +1,137 @@
+<div class="page-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-titles">
+      <h1 class="page-title">📂 Documents</h1>
+      <p class="page-subtitle">All uploaded documents across your workspace projects.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="loadAll()">
+        <span class="icon">↻</span> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loader-ring"></div>
+    <h3>Loading Documents...</h3>
+    <p>Fetching documents from all your workspace projects.</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && error" class="error-state glass-panel">
+    <span class="error-icon">⚠️</span>
+    <h3>Something went wrong</h3>
+    <p>{{ error }}</p>
+    <button class="btn-primary mt-4" (click)="loadAll()">Try Again</button>
+  </div>
+
+  <!-- Delete error toast -->
+  <div *ngIf="deleteError" class="toast-error">
+    ⚠️ {{ deleteError }}
+  </div>
+
+  <!-- Content -->
+  <ng-container *ngIf="!isLoading && !error">
+
+    <!-- Empty State -->
+    <div *ngIf="documents.length === 0" class="empty-state glass-panel">
+      <span class="empty-icon">📁</span>
+      <h3>No Documents Found</h3>
+      <p>Upload documents inside any project to see them listed here.</p>
+      <button class="btn-primary mt-4" routerLink="/projects">Go to Projects</button>
+    </div>
+
+    <!-- Stats Bar -->
+    <div *ngIf="documents.length > 0" class="stats-bar glass-panel">
+      <div class="stat-item">
+        <span class="stat-value">{{ documents.length }}</span>
+        <span class="stat-label">Total Documents</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ getPdfCount() }}</span>
+        <span class="stat-label">PDF Files</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ getDocxCount() }}</span>
+        <span class="stat-label">DOCX Files</span>
+      </div>
+    </div>
+
+    <!-- Documents Table -->
+    <div *ngIf="documents.length > 0" class="documents-table glass-panel">
+      <div class="table-header">
+        <div class="col-icon"></div>
+        <div class="col-name">Document</div>
+        <div class="col-project">Project</div>
+        <div class="col-type">Type</div>
+        <div class="col-size">Size</div>
+        <div class="col-date">Uploaded</div>
+        <div class="col-actions">Actions</div>
+      </div>
+
+      <div
+        class="table-row"
+        *ngFor="let item of documents"
+        [class.deleting]="deletingId === item.document.id">
+
+        <div class="col-icon">
+          <span class="file-icon">{{ getFileIcon(item.document.fileType) }}</span>
+        </div>
+
+        <div class="col-name">
+          <span class="file-name" [title]="item.document.originalFileName">
+            {{ item.document.originalFileName }}
+          </span>
+        </div>
+
+        <div class="col-project">
+          <span class="project-badge" (click)="viewDocument(item)">
+            {{ item.projectName }}
+          </span>
+        </div>
+
+        <div class="col-type">
+          <span class="type-badge" [ngClass]="getFileTypeLabel(item.document.fileType).toLowerCase()">
+            {{ getFileTypeLabel(item.document.fileType) }}
+          </span>
+        </div>
+
+        <div class="col-size">
+          <span class="file-size">{{ formatFileSize(item.document.fileSize) }}</span>
+        </div>
+
+        <div class="col-date">
+          <span class="upload-date">{{ item.document.uploadDate | date:'mediumDate' }}</span>
+        </div>
+
+        <div class="col-actions">
+          <button
+            class="action-btn view"
+            title="View in project"
+            (click)="viewDocument(item)">
+            👁️
+          </button>
+          <button
+            class="action-btn download"
+            title="Download"
+            (click)="downloadDocument(item)">
+            ⬇️
+          </button>
+          <button
+            class="action-btn delete"
+            title="Delete"
+            [disabled]="deletingId === item.document.id"
+            (click)="deleteDocument(item)">
+            <span *ngIf="deletingId !== item.document.id">🗑️</span>
+            <span *ngIf="deletingId === item.document.id" class="deleting-spinner"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

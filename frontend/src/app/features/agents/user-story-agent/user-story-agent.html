@@ -1,0 +1,274 @@
+<div class="page-container">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" *ngIf="activeProject">
+    <a [routerLink]="['/projects', activeProject.id]" class="breadcrumb-link">← Back to {{ activeProject.name }}</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>User Story Agent</span>
+  </div>
+
+  <!-- ── Page Header ─────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-titles">
+      <h1 class="page-title">User Story Agent</h1>
+      <p class="page-subtitle" *ngIf="activeProject">
+        Agile backlog for: <strong>{{ activeProject.name }}</strong>
+      </p>
+      <p class="page-subtitle" *ngIf="!activeProject">
+        Agile planning, epic breakdown &amp; user story generation.
+      </p>
+    </div>
+
+    <div class="header-actions" *ngIf="hasProject && hasAnalysis">
+      <button
+        class="btn-export"
+        [class.success]="exportSuccess"
+        (click)="exportAsText()"
+      >
+        <span *ngIf="!exportSuccess">📤 Export Backlog</span>
+        <span *ngIf="exportSuccess">✅ Exported!</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Loading ──────────────────────────────────────────────────────────── -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loader-ring"></div>
+    <h3>Loading Workspace...</h3>
+    <p>Restoring project and analysis context.</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- ── No Project ──────────────────────────────────────────────────────── -->
+    <div *ngIf="!hasProject" class="empty-state glass-panel">
+      <span class="empty-icon">📂</span>
+      <h3>No Active Project</h3>
+      <p>Select a project from the Business Analyst Agent to start generating user stories.</p>
+    </div>
+
+    <!-- ── No Analysis ─────────────────────────────────────────────────────── -->
+    <div *ngIf="hasProject && !hasAnalysis" class="empty-state glass-panel">
+      <span class="empty-icon">🤖</span>
+      <h3>Analysis Incomplete</h3>
+      <p>The Business Analyst Agent needs to complete its analysis before user stories can be generated.</p>
+    </div>
+
+    <!-- ── Data State ──────────────────────────────────────────────────────── -->
+    <div *ngIf="hasProject && hasAnalysis" class="content-wrapper fade-in">
+
+      <!-- Context Banner -->
+      <div class="context-banner glass-panel">
+        <div class="context-info">
+          <span class="context-label">Project</span>
+          <span class="context-value">{{ activeProject?.name }}</span>
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-info">
+          <span class="context-label">Total Stories</span>
+          <span class="context-value accent">{{ totalStories }}</span>
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-info">
+          <span class="context-label">Epics</span>
+          <span class="context-value accent">{{ totalEpics }}</span>
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-info">
+          <span class="context-label">High Priority</span>
+          <span class="context-value priority-accent">{{ highPriorityCount }}</span>
+        </div>
+      </div>
+
+      <!-- KPI Stats -->
+      <div class="stats-grid">
+        <div class="stat-card glass-panel">
+          <span class="stat-icon">📋</span>
+          <div class="stat-body">
+            <span class="stat-value">{{ totalStories }}</span>
+            <span class="stat-label">Total Stories</span>
+          </div>
+        </div>
+        <div class="stat-card glass-panel">
+          <span class="stat-icon">🗂️</span>
+          <div class="stat-body">
+            <span class="stat-value">{{ totalEpics }}</span>
+            <span class="stat-label">Epics</span>
+          </div>
+        </div>
+        <div class="stat-card glass-panel">
+          <span class="stat-icon">🔴</span>
+          <div class="stat-body">
+            <span class="stat-value">{{ highPriorityCount }}</span>
+            <span class="stat-label">High Priority</span>
+          </div>
+        </div>
+        <div class="stat-card glass-panel">
+          <span class="stat-icon">✅</span>
+          <div class="stat-body">
+            <span class="stat-value">{{ acceptanceCriteria.length }}</span>
+            <span class="stat-label">Acceptance Criteria</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tabs-container glass-panel">
+        <button
+          class="tab-btn"
+          *ngFor="let tab of tabs"
+          [class.active]="activeTab === tab.key"
+          (click)="setTab(tab.key)"
+        >
+          <span class="tab-icon">{{ tab.icon }}</span>
+          <span class="tab-label">{{ tab.label }}</span>
+          <span class="tab-badge">{{ getTabCount(tab.key) }}</span>
+        </button>
+      </div>
+
+      <!-- ── BACKLOG TAB ────────────────────────────────────────────────────── -->
+      <div class="tab-content glass-panel fade-in" *ngIf="activeTab === 'backlog'">
+        <div class="panel-header">
+          <h3 class="panel-title">📋 Product Backlog</h3>
+          <p class="panel-subtitle">All user stories ordered by priority</p>
+        </div>
+
+        <div *ngIf="userStories.length === 0" class="no-items">No user stories generated yet.</div>
+
+        <div *ngIf="userStories.length > 0" class="story-table">
+          <div class="story-table-head">
+            <span class="col-id">ID</span>
+            <span class="col-story">User Story</span>
+            <span class="col-priority">Priority</span>
+          </div>
+          <div class="story-row" *ngFor="let story of userStories">
+            <span class="col-id story-id">{{ story.id }}</span>
+            <span class="col-story story-text">{{ story.text }}</span>
+            <span class="col-priority">
+              <span class="priority-badge" [ngClass]="getPriorityClass(story.priority)">
+                {{ story.priority }}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── EPICS TAB ──────────────────────────────────────────────────────── -->
+      <div class="tab-content glass-panel fade-in" *ngIf="activeTab === 'epics'">
+        <div class="panel-header">
+          <h3 class="panel-title">🗂️ Epics</h3>
+          <p class="panel-subtitle">High-level feature groupings derived from the analysis. Click an epic to filter stories.</p>
+        </div>
+
+        <div *ngIf="epics.length === 0" class="no-items">No epics could be derived.</div>
+
+        <div class="epics-grid" *ngIf="epics.length > 0">
+          <div
+            class="epic-card"
+            *ngFor="let epic of epics; let i = index"
+            [class.selected]="selectedEpicIndex === i"
+            (click)="filterByEpic(i)"
+            [style.--epic-color]="epic.color"
+          >
+            <div class="epic-header">
+              <span class="epic-number">EPIC-{{ i + 1 }}</span>
+              <span class="epic-dot" [style.background]="epic.color"></span>
+            </div>
+            <h4 class="epic-title">{{ epic.title }}</h4>
+            <p class="epic-desc">{{ epic.description }}</p>
+            <div class="epic-footer">
+              <span class="epic-count">{{ epic.storyCount }} stories</span>
+              <span class="epic-action">View →</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STORIES TAB ────────────────────────────────────────────────────── -->
+      <div class="tab-content glass-panel fade-in" *ngIf="activeTab === 'stories'">
+        <div class="panel-header">
+          <div class="panel-header-row">
+            <div>
+              <h3 class="panel-title">📝 User Stories</h3>
+              <p class="panel-subtitle">
+                <ng-container *ngIf="selectedEpicIndex !== null">
+                  Filtered by: <strong>{{ epics[selectedEpicIndex]?.title }}</strong>
+                  <button class="btn-clear-filter" (click)="selectedEpicIndex = null">✕ Clear</button>
+                </ng-container>
+                <ng-container *ngIf="selectedEpicIndex === null">
+                  All user stories as a developer/product team would see them
+                </ng-container>
+              </p>
+            </div>
+            <div class="epic-filter-chips" *ngIf="epics.length > 0">
+              <button
+                class="chip"
+                *ngFor="let ep of epics; let i = index"
+                [class.active]="selectedEpicIndex === i"
+                [style.--chip-color]="ep.color"
+                (click)="filterByEpic(i)"
+              >
+                {{ ep.title }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredStories.length === 0" class="no-items">No stories for this epic.</div>
+
+        <div *ngIf="filteredStories.length > 0" class="story-cards-grid">
+          <div class="story-card" *ngFor="let story of filteredStories"
+               [style.--epic-color]="getEpicColor(story.epicIndex)">
+            <div class="story-card-header">
+              <span class="story-id-badge">{{ story.id }}</span>
+              <span class="priority-badge" [ngClass]="getPriorityClass(story.priority)">{{ story.priority }}</span>
+            </div>
+            <p class="story-card-text">{{ story.text }}</p>
+            <div class="story-card-footer">
+              <span class="epic-tag" [style.color]="getEpicColor(story.epicIndex)">
+                {{ epics[story.epicIndex]?.title || 'General' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACCEPTANCE CRITERIA TAB ────────────────────────────────────────── -->
+      <div class="tab-content glass-panel fade-in" *ngIf="activeTab === 'acceptance'">
+        <div class="panel-header">
+          <h3 class="panel-title">✅ Acceptance Criteria</h3>
+          <p class="panel-subtitle">Conditions that must be met to fulfil each story</p>
+        </div>
+
+        <div *ngIf="acceptanceCriteria.length === 0" class="no-items">No acceptance criteria found.</div>
+
+        <div *ngIf="acceptanceCriteria.length > 0" class="ac-list">
+          <div class="ac-item" *ngFor="let ac of acceptanceCriteria; let i = index">
+            <div class="ac-index">
+              <span class="ac-num">{{ i + 1 }}</span>
+            </div>
+            <div class="ac-body">
+              <p class="ac-text">{{ ac.text }}</p>
+              <span class="ac-ref" *ngIf="ac.storyRef">Linked to: {{ ac.storyRef }}</span>
+            </div>
+            <div class="ac-check">✓</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
+
+  <!-- Next Step CTA -->
+  <div class="next-step-cta glass-panel" *ngIf="activeProject && userStories.length > 0">
+    <div class="cta-content">
+      <span class="cta-icon">✅</span>
+      <div>
+        <h4>User Stories Ready!</h4>
+        <p>Generate the final technical documentation package.</p>
+      </div>
+    </div>
+    <a class="btn btn-primary" [routerLink]="['/projects', activeProject.id, 'agents', 'documentation']">Documentation Agent →</a>
+  </div>
+
+</div>

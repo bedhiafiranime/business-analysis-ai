@@ -1,0 +1,58 @@
+<div class="dashboard-container page-header-spacing">
+  <div class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="text-muted">Welcome to your workspace overview</p>
+    </div>
+    <button class="btn-primary" routerLink="/projects">
+      <span class="icon">✨</span> New Project
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stats-card glass-panel">
+      <div class="stats-icon primary">📁</div>
+      <div class="stats-info">
+        <span class="label">Total Projects</span>
+        <span class="value">{{ projects.length }}</span>
+      </div>
+    </div>
+    
+    <div class="stats-card glass-panel">
+      <div class="stats-icon success">✅</div>
+      <div class="stats-info">
+        <span class="label">Completed Analyses</span>
+        <span class="value">{{ completedAnalyses }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="recent-projects mt-5">
+    <h2>Recent Projects</h2>
+    
+    <div class="projects-grid mt-4" *ngIf="projects.length > 0; else noProjects">
+      <div *ngFor="let project of recentProjects" class="project-card glass-panel">
+        <div class="project-header">
+          <h3>{{ project.name }}</h3>
+          <span class="badge" [ngClass]="'status-' + project.status.toLowerCase()">
+            {{ project.status }}
+          </span>
+        </div>
+        <p class="project-desc">{{ project.businessIdea || 'No description provided' }}</p>
+        <div class="project-footer">
+          <span class="date">Updated {{ project.updatedAt | date:'shortDate' }}</span>
+          <button class="btn-outline" [routerLink]="['/projects', project.id]">Open</button>
+        </div>
+      </div>
+    </div>
+    
+    <ng-template #noProjects>
+      <div class="empty-state glass-panel">
+        <div class="empty-icon">🚀</div>
+        <h3>No projects yet</h3>
+        <p>Get started by creating your first business analysis project.</p>
+        <button class="btn-primary mt-3" routerLink="/projects">Create Project</button>
+      </div>
+    </ng-template>
+  </div>
+</div>

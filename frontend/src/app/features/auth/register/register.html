@@ -1,0 +1,38 @@
+<div class="auth-container">
+  <div class="auth-card glass-panel">
+    <div class="auth-header">
+      <h2>Create Account</h2>
+      <p>Join Business Analysis AI today</p>
+    </div>
+    
+    <form (ngSubmit)="register()" #registerForm="ngForm" class="auth-form">
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" name="fullName" [(ngModel)]="request.fullName" required placeholder="John Doe" class="input-field">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" [(ngModel)]="request.email" required placeholder="name@example.com" class="input-field">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" [(ngModel)]="request.password" required placeholder="••••••••" minlength="6" class="input-field">
+      </div>
+      
+      <div class="error-message" *ngIf="errorMsg">
+        {{ errorMsg }}
+      </div>
+      
+      <button type="submit" class="btn-primary" [disabled]="!registerForm.valid || isLoading">
+        <span *ngIf="!isLoading">Register</span>
+        <span *ngIf="isLoading" class="loader">Loading...</span>
+      </button>
+    </form>
+    
+    <div class="auth-footer">
+      <p>Already have an account? <a routerLink="/login">Sign in</a></p>
+    </div>
+  </div>
+</div>

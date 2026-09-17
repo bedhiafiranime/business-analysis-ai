@@ -1,0 +1,87 @@
+<div class="page-container">
+  
+  <div class="page-header">
+    <div class="header-titles">
+      <h1 class="page-title">AI Chat Agent</h1>
+      <p class="page-subtitle" *ngIf="activeProject">
+        Querying context for: <strong>{{ activeProject.name }}</strong>
+      </p>
+      <p class="page-subtitle" *ngIf="!activeProject">
+        Interactive AI assistant for your business analysis.
+      </p>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loader-ring"></div>
+    <h3>Loading Context...</h3>
+    <p>Synchronizing with the active workspace.</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    
+    <!-- No Project State -->
+    <div *ngIf="!hasProject" class="empty-state glass-panel">
+      <span class="empty-icon">📂</span>
+      <h3>No Active Project</h3>
+      <p>Select a project to start interacting with the AI Chat Agent.</p>
+    </div>
+
+    <!-- No Analysis State -->
+    <div *ngIf="hasProject && !hasAnalysis" class="empty-state glass-panel">
+      <span class="empty-icon">🤖</span>
+      <h3>Analysis Incomplete</h3>
+      <p>The Business Analyst Agent needs to complete its analysis before I can answer questions about it.</p>
+    </div>
+
+    <!-- Chat Interface -->
+    <div *ngIf="hasProject && hasAnalysis" class="chat-wrapper fade-in">
+      
+      <div class="chat-container glass-panel">
+        
+        <!-- Chat History -->
+        <div class="chat-history" #chatScroll>
+          <div class="message" *ngFor="let msg of messages" [ngClass]="msg.role">
+            <div class="message-avatar">
+              <span *ngIf="msg.role === 'assistant'">🤖</span>
+              <span *ngIf="msg.role === 'user'">👤</span>
+            </div>
+            <div class="message-content-wrapper">
+              <div class="message-sender">
+                {{ msg.role === 'assistant' ? 'AI Agent' : 'You' }}
+                <span class="message-time">{{ msg.timestamp | date:'shortTime' }}</span>
+              </div>
+              <pre class="message-bubble">{{ msg.content }}</pre>
+            </div>
+          </div>
+          
+          <div class="message assistant typing-indicator-msg" *ngIf="isTyping">
+            <div class="message-avatar"><span>🤖</span></div>
+            <div class="message-content-wrapper">
+               <div class="typing-dots">
+                 <span></span><span></span><span></span>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-area">
+          <input 
+            type="text" 
+            class="chat-input" 
+            placeholder="Ask about user stories, requirements, or risks..."
+            [(ngModel)]="userInput"
+            (keyup.enter)="sendMessage()"
+            [disabled]="isTyping"
+          />
+          <button class="btn-send" (click)="sendMessage()" [disabled]="!userInput.trim() || isTyping">
+            <span class="send-icon">➤</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </ng-container>
+</div>
